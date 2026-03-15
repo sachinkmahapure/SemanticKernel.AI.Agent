@@ -1,0 +1,31 @@
+{
+  "company": {
+    "name": "TechStore Inc.",
+    "founded": 2019,
+    "employees": 47,
+    "headquarters": "San Francisco, CA"
+  },
+  "kpis": {
+    "monthly_revenue": 142500,
+    "monthly_orders": 312,
+    "avg_order_value": 456.73,
+    "customer_satisfaction": 4.7,
+    "return_rate_pct": 2.3
+  },
+  "top_categories": [
+    { "name": "Electronics", "revenue": 78000, "units_sold": 95  },
+    { "name": "Accessories", "revenue": 41200, "units_sold": 430 },
+    { "name": "Storage",     "revenue": 15800, "units_sold": 144 },
+    { "name": "Memory",      "revenue": 7500,  "units_sold":  54 }
+  ],
+  "monthly_targets": {
+    "revenue": 150000,
+    "orders": 350,
+    "new_customers": 40
+  },
+  "support": {
+    "open_tickets": 12,
+    "avg_resolution_hours": 4.2,
+    "sla_compliance_pct": 96.8
+  }
+}

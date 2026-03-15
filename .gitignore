@@ -1,0 +1,49 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.DotSettings.user
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+## Secrets & Keys
+**/secrets.json
+**/appsettings.Production.json
+**/*.pfx
+**/*.key
+.env
+.env.*
+
+## Database files
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf
+
+## Logs
+logs/
+*.log
+
+## Test results
+TestResults/
+test-results/
+coverage/
+*.trx
+
+## Docker
+.docker/
+
+## IDE
+.idea/
+.vscode/settings.json
+*.swp
+
+## OS
+.DS_Store
+Thumbs.db

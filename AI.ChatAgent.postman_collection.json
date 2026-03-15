@@ -1,0 +1,198 @@
+{
+  "info": {
+    "name": "AI ChatAgent API",
+    "description": "Complete collection for testing the AI ChatAgent API endpoints",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",   "value": "http://localhost:8080" },
+    { "key": "sessionId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health",
+            "description": "Check application health status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "POST /chat - General Question",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What can you help me with today?\",\n  \"sessionId\": \"\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                "pm.test('Has sessionId', () => {",
+                "  const body = pm.response.json();",
+                "  pm.expect(body.sessionId).to.be.a('string');",
+                "  pm.collectionVariables.set('sessionId', body.sessionId);",
+                "});"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "POST /chat - Product Search",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Show me all electronics products under $200\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /chat - Business Stats",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Give me a business summary with revenue and top products\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /chat - CSV Analysis",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Analyze the sales_data.csv file and tell me the total revenue by region\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /chat - Web Search",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What are the latest trends in laptop technology for 2024?\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"preferredPlugins\": [\"WebSearchPlugin\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /chat - PDF Search",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"List all available PDF documents\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /chat - Validation Error (empty message)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status 400', () => pm.response.to.have.status(400));"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Streaming",
+      "item": [
+        {
+          "name": "POST /chat/stream - Streaming Response",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chat/stream",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Accept",        "value": "text/event-stream" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Tell me about your top selling products\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "description": "Streaming chat via Server-Sent Events. Open in browser or use curl:\ncurl -X POST http://localhost:8080/chat/stream \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"message\": \"Hello\"}'"
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "GET /chat/{sessionId}/history",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/chat/{{sessionId}}/history?limit=20",
+            "description": "Retrieve conversation history for a session"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approvals",
+      "item": [
+        {
+          "name": "GET /approvals",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/approvals",
+            "description": "List all pending human-approval requests"
+          }
+        },
+        {
+          "name": "POST /approvals/{id}/resolve - Approve",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/approvals/APPROVAL_ID_HERE/resolve?approved=true&reviewer=admin&notes=Approved",
+            "description": "Approve a pending request (replace APPROVAL_ID_HERE)"
+          }
+        },
+        {
+          "name": "POST /approvals/{id}/resolve - Reject",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/approvals/APPROVAL_ID_HERE/resolve?approved=false&reviewer=admin&notes=Rejected",
+            "description": "Reject a pending request (replace APPROVAL_ID_HERE)"
+          }
+        }
+      ]
+    }
+  ]
+}

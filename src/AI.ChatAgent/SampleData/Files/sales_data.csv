@@ -1,0 +1,11 @@
+OrderId,CustomerName,Product,Category,Quantity,UnitPrice,TotalPrice,OrderDate,Status,Region
+1001,Alice Johnson,Laptop Pro 15,Electronics,1,1299.99,1299.99,2024-01-15,Delivered,North
+1002,Bob Williams,Wireless Mouse,Accessories,2,49.99,99.98,2024-01-16,Delivered,South
+1003,Carol Davis,Monitor 27" 4K,Electronics,1,599.99,599.99,2024-01-18,Delivered,East
+1004,David Martinez,SSD 1TB,Storage,3,109.99,329.97,2024-01-20,Shipped,West
+1005,Alice Johnson,Mechanical Keyboard,Accessories,1,149.99,149.99,2024-01-22,Delivered,North
+1006,Eve Wilson,USB-C Hub,Accessories,2,79.99,159.98,2024-01-25,Delivered,South
+1007,Frank Brown,Webcam HD,Electronics,1,89.99,89.99,2024-01-28,Pending,East
+1008,Grace Lee,RAM 32GB Kit,Memory,2,139.99,279.98,2024-02-01,Confirmed,West
+1009,Henry Chen,Laptop Pro 15,Electronics,1,1299.99,1299.99,2024-02-03,Shipped,North
+1010,Alice Johnson,SSD 1TB,Storage,1,109.99,109.99,2024-02-05,Pending,North

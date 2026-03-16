@@ -140,22 +140,22 @@ namespace AI.ChatAgent.Migrations
             // Seed data
             migrationBuilder.InsertData("Products", new[] { "Id","Name","Description","Price","Category","StockQuantity","CreatedAt","IsActive" }, new object[,]
             {
-                { 1, "Laptop Pro 15",       "High-performance laptop",        1299.99m, "Electronics", 45,  DateTimeOffset.UtcNow, true },
-                { 2, "Wireless Mouse",      "Ergonomic wireless mouse",        49.99m,  "Accessories", 200, DateTimeOffset.UtcNow, true },
-                { 3, "USB-C Hub",           "7-in-1 USB-C hub",                79.99m,  "Accessories", 150, DateTimeOffset.UtcNow, true },
-                { 4, "Mechanical Keyboard", "RGB mechanical keyboard",        149.99m,  "Accessories",  80, DateTimeOffset.UtcNow, true },
-                { 5, "Monitor 27\" 4K",     "4K IPS monitor",                 599.99m,  "Electronics",  30, DateTimeOffset.UtcNow, true },
-                { 6, "Webcam HD",           "1080p USB webcam with mic",       89.99m,  "Electronics", 120, DateTimeOffset.UtcNow, true },
-                { 7, "SSD 1TB",             "NVMe M.2 SSD",                   109.99m,  "Storage",     200, DateTimeOffset.UtcNow, true },
-                { 8, "RAM 32GB Kit",        "DDR5 6000MHz dual channel",      139.99m,  "Memory",       90, DateTimeOffset.UtcNow, true }
+                { 1, "Laptop Pro 15",       "High-performance laptop",        1299.99m, "Electronics", 45,  new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true },
+                { 2, "Wireless Mouse",      "Ergonomic wireless mouse",        49.99m,  "Accessories", 200, new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true },
+                { 3, "USB-C Hub",           "7-in-1 USB-C hub",                79.99m,  "Accessories", 150, new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true },
+                { 4, "Mechanical Keyboard", "RGB mechanical keyboard",        149.99m,  "Accessories",  80, new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true },
+                { 5, "Monitor 27\" 4K",     "4K IPS monitor",                 599.99m,  "Electronics",  30, new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true },
+                { 6, "Webcam HD",           "1080p USB webcam with mic",       89.99m,  "Electronics", 120, new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true },
+                { 7, "SSD 1TB",             "NVMe M.2 SSD",                   109.99m,  "Storage",     200, new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true },
+                { 8, "RAM 32GB Kit",        "DDR5 6000MHz dual channel",      139.99m,  "Memory",       90, new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero), true }
             });
 
             migrationBuilder.InsertData("Customers", new[] { "Id","FirstName","LastName","Email","Phone","CreatedAt" }, new object[,]
             {
-                { 1, "Alice", "Johnson",  "alice@example.com", "+1-555-0101", DateTimeOffset.UtcNow },
-                { 2, "Bob",   "Williams", "bob@example.com",   "+1-555-0102", DateTimeOffset.UtcNow },
-                { 3, "Carol", "Davis",    "carol@example.com", "+1-555-0103", DateTimeOffset.UtcNow },
-                { 4, "David", "Martinez", "david@example.com", "+1-555-0104", DateTimeOffset.UtcNow }
+                { 1, "Alice", "Johnson",  "alice@example.com", "+1-555-0101", new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero) },
+                { 2, "Bob",   "Williams", "bob@example.com",   "+1-555-0102", new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero) },
+                { 3, "Carol", "Davis",    "carol@example.com", "+1-555-0103", new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero) },
+                { 4, "David", "Martinez", "david@example.com", "+1-555-0104", new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero) }
             });
 
             // Indexes

@@ -198,9 +198,10 @@ try
     // ── Auto-migrate DB ───────────────────────────────────────────────────────
     using (var scope = app.Services.CreateScope())
     {
-        var db = scope.ServiceProvider.GetRequiredService<ChatAgentDbContext>();
-        await db.Database.MigrateAsync();
-        Log.Information("Database migrated");
+        var db  = scope.ServiceProvider.GetRequiredService<ChatAgentDbContext>();
+        var log = scope.ServiceProvider.GetRequiredService<ILogger<ChatAgentDbContext>>();
+
+        await EnsureDatabaseReadyAsync(db, log);
     }
 
     EnsureSampleDirectories(app.Configuration);
@@ -334,6 +335,69 @@ static void EnsureSampleDirectories(IConfiguration config)
     Directory.CreateDirectory(config["Storage:PdfDirectory"]  ?? "SampleData/PDFs");
     Directory.CreateDirectory(config["Storage:FileDirectory"] ?? "SampleData/Files");
     Directory.CreateDirectory("logs");
+}
+
+// ── Database bootstrap helpers ────────────────────────────────────────────────
+
+/// <summary>
+/// Robust database startup:
+/// 1. Runs MigrateAsync() — applies pending migrations normally.
+/// 2. Verifies that real application tables were actually created.
+/// 3. If tables are missing (stale __EFMigrationsHistory from a prior failed run),
+///    deletes and recreates the database from scratch via EnsureCreated().
+///
+/// This fixes the silent failure where only __EFMigrationsHistory and
+/// __EFMigrationsLock exist but no application tables were created.
+/// </summary>
+static async Task EnsureDatabaseReadyAsync(
+    AI.ChatAgent.Data.ChatAgentDbContext db,
+    Microsoft.Extensions.Logging.ILogger logger)
+{
+    try
+    {
+        await db.Database.MigrateAsync();
+        logger.LogInformation("Database migration complete");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "MigrateAsync failed — attempting EnsureCreated fallback");
+    }
+
+    // Verify tables actually exist by trying to query Products.
+    // If missing, migration history is stale from a prior failed run — nuke and recreate.
+    var tablesExist = await ProductsTableExistsAsync(db, logger);
+    if (!tablesExist)
+    {
+        logger.LogWarning(
+            "Application tables missing despite migration history. " +
+            "Deleting and recreating the database from scratch...");
+
+        await db.Database.EnsureDeletedAsync();
+        await db.Database.EnsureCreatedAsync();
+
+        logger.LogInformation("Database recreated via EnsureCreated — all tables and seed data applied");
+    }
+    else
+    {
+        logger.LogInformation("Database tables verified OK");
+    }
+}
+
+static async Task<bool> ProductsTableExistsAsync(
+    AI.ChatAgent.Data.ChatAgentDbContext db,
+    Microsoft.Extensions.Logging.ILogger logger)
+{
+    try
+    {
+        // Cheapest check — COUNT(*) with no row fetch
+        _ = await db.Products.CountAsync();
+        return true;
+    }
+    catch (Exception ex)
+    {
+        logger.LogDebug(ex, "Products table check failed — tables do not exist yet");
+        return false;
+    }
 }
 
 // ── Validator ─────────────────────────────────────────────────────────────────

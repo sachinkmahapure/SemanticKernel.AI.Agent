@@ -60,8 +60,8 @@ public sealed class ConversationService(
 
         var messages = await db.ChatMessages
             .Where(m => m.SessionId == sessionId)
-            .OrderBy(m => m.CreatedAt)
-            .TakeLast(MaxHistoryMessages)
+            .OrderByDescending(m => m.Id)
+            .Take(MaxHistoryMessages)
             .AsNoTracking()
             .ToListAsync(ct);
 
@@ -104,7 +104,7 @@ public sealed class ConversationService(
     {
         return await db.ChatMessages
             .Where(m => m.SessionId == sessionId)
-            .OrderByDescending(m => m.CreatedAt)
+            .OrderByDescending(m => m.Id)
             .Take(limit)
             .AsNoTracking()
             .ToListAsync(ct);

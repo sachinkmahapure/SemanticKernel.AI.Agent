@@ -10,16 +10,20 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Suppress SK experimental-API diagnostics project-wide -->
+    <NoWarn>$(NoWarn);SKEXP0010;SKEXP0013</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Semantic Kernel -->
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.3" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.21.1" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.21.1" />
-    <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.73.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.21.1-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.21.1-alpha" />
+    <!-- Semantic Kernel — all packages pinned to the SAME version.
+         v1.21.1 has a binary incompatibility in Connectors.OpenAI where
+         FunctionCallContent.set_Exception is missing at runtime (MissingMethodException).
+         v1.30.0 is the first stable release where this is resolved. -->
+	  <!-- Semantic Kernel -->
+	  <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.3" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.73.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.73.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.73.0" />
 
     <!-- EF Core -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
@@ -61,14 +65,14 @@
     <!-- Rate Limiting -->
     <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
 
-    <!-- Health Checks: correct package ID is AspNetCore.HealthChecks.EntityFrameworkCore -->
+	  <!-- Health Checks: correct package ID is AspNetCore.HealthChecks.EntityFrameworkCore -->
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
-
+   
     <!-- Redis -->
     <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.4" />
-    <PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
+	  <PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -80,15 +80,16 @@ public sealed class RouterService(
             var history     = new ChatHistory(RouterSystemPrompt);
             history.AddUserMessage(prompt);
 
-            // ResponseFormat is marked [Experimental] in SK 1.x — suppress the diagnostic.
-#pragma warning disable SKEXP0010
+            // ResponseFormat: suppress both diagnostic codes used across SK versions
+            // SKEXP0010 was used in 1.2x; SKEXP0013 used in 1.3x+
+#pragma warning disable SKEXP0010, SKEXP0013
             var settings = new OpenAIPromptExecutionSettings
             {
                 MaxTokens      = 1024,
                 Temperature    = 0,
                 ResponseFormat = "json_object"
             };
-#pragma warning restore SKEXP0010
+#pragma warning restore SKEXP0010, SKEXP0013
 
             // GetChatMessageContentAsync: correct parameter is 'cancellationToken', not 'ct'
             var response = await chatService.GetChatMessageContentAsync(

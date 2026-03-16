@@ -60,7 +60,7 @@ public sealed class ChatService(
             if (!approved)
             {
                 var rejectedMsg = "I need human approval to perform this action, but the request was rejected or timed out.";
-                await conversation.AddAssistantMessageAsync(sessionId, rejectedMsg, ct: cancellationToken);
+                await conversation.AddAssistantMessageAsync(sessionId, rejectedMsg, cancellationToken: cancellationToken);
                 return new ChatResponse
                 {
                     SessionId   = sessionId,
@@ -167,7 +167,7 @@ public sealed class ChatService(
                 const string rejected = "I need human approval to perform this action, but it was not granted.";
                 yield return new StreamChunk { Type = AppConstants.StreamTypes.Content, Content = rejected };
                 yield return new StreamChunk { Type = AppConstants.StreamTypes.Done };
-                await conversation.AddAssistantMessageAsync(sessionId, rejected, ct: cancellationToken);
+                await conversation.AddAssistantMessageAsync(sessionId, rejected, cancellationToken: cancellationToken);
                 yield break;
             }
         }
@@ -213,7 +213,7 @@ public sealed class ChatService(
 
         // 9. Persist complete response
         var fullResponse = sb.ToString();
-        await conversation.AddAssistantMessageAsync(sessionId, fullResponse, ct: cancellationToken);
+        await conversation.AddAssistantMessageAsync(sessionId, fullResponse, cancellationToken: cancellationToken);
 
         yield return new StreamChunk
         {

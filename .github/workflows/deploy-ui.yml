@@ -1,0 +1,80 @@
+name: Deploy Angular UI → GitHub Pages
+
+# Triggers: push to main, or manually
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'chatagent-angular/**'
+      - '.github/workflows/deploy-ui.yml'
+  workflow_dispatch:
+
+# Allow GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Angular
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: chatagent-angular/package-lock.json
+
+      - name: Install dependencies
+        working-directory: chatagent-angular
+        run: npm ci --legacy-peer-deps
+
+      # ── Inject the backend API URL at build time ──────────────────────────
+      # Set REACT_APP_API_URL (or Angular env) to point at your deployed API.
+      # Store the URL in: Settings → Secrets → VITE_API_URL
+      # e.g. https://your-api.railway.app
+      - name: Build for GitHub Pages
+        working-directory: chatagent-angular
+        env:
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          # Patch environment.prod.ts with the real API URL from secrets
+          sed -i "s|apiBaseUrl: ''|apiBaseUrl: '${API_URL}'|g" \
+            src/environments/environment.prod.ts
+          npm run build:prod -- --base-href /$(echo "${{ github.repository }}" | cut -d'/' -f2)/
+
+      - name: Create 404.html for SPA routing
+        working-directory: chatagent-angular/dist/chatagent-angular/browser
+        run: cp index.html 404.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: chatagent-angular/dist/chatagent-angular/browser
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

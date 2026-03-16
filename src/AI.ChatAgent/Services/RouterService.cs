@@ -12,7 +12,7 @@ namespace AI.ChatAgent.Services;
 /// Uses the LLM itself to make an intelligent routing decision.
 /// </summary>
 public sealed class RouterService(
-    Kernel kernel,
+    IKernelFactory kernelFactory,
     ILogger<RouterService> logger)
 {
     private static readonly JsonSerializerOptions JsonOpts = new()
@@ -21,7 +21,8 @@ public sealed class RouterService(
         AllowTrailingCommas = true
     };
 
-    private const string RouterSystemPrompt = """
+    private const string RouterSystemPrompt =
+        """
         You are a routing agent. Given a user message and conversation context, decide which
         tools/plugins should be called to answer the query. Respond ONLY with valid JSON.
 
@@ -74,6 +75,7 @@ public sealed class RouterService(
 
         try
         {
+            var kernel      = kernelFactory.CreateForRequest();
             var chatService = kernel.GetRequiredService<IChatCompletionService>();
             var history     = new ChatHistory(RouterSystemPrompt);
             history.AddUserMessage(prompt);

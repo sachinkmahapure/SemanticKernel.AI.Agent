@@ -1,0 +1,30 @@
+services:
+  # ── .NET API ──────────────────────────────────────────────────────────────
+  - type: web
+    name: ai-chatagent-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free           # free tier: 512MB RAM, sleeps after 15min inactivity
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: AI__Provider
+        value: OpenAI
+      - key: AI__OpenAI__ApiKey
+        sync: false      # set in Render dashboard — never in source
+      - key: AI__OpenAI__ChatModelId
+        value: gpt-4o-mini
+      - key: WebSearch__Provider
+        value: Serper
+      - key: WebSearch__Serper__ApiKey
+        sync: false
+      - key: ConnectionStrings__DefaultConnection
+        value: Data Source=/data/chatagent.db
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1

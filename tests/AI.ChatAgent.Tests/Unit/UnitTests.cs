@@ -297,22 +297,26 @@ public sealed class HumanApprovalServiceTests
 
 public sealed class ToolExecutorTests
 {
+    /// <summary>Creates a ToolExecutorService backed by an empty kernel (no plugins, no AI).</summary>
+    private static ToolExecutorService BuildExecutor()
+    {
+        var kernel  = Microsoft.SemanticKernel.Kernel.CreateBuilder().Build();
+        var factory = new StubKernelFactory(kernel);
+        return new ToolExecutorService(factory, NullLogger<ToolExecutorService>.Instance);
+    }
+
     [Fact]
     public async Task ExecuteAsync_EmptyList_ReturnsEmpty()
     {
-        var kernel = Microsoft.SemanticKernel.Kernel.CreateBuilder().Build();
-        var executor = new ToolExecutorService(kernel, NullLogger<ToolExecutorService>.Instance);
-
-        var results = await executor.ExecuteAsync([]);
-
+        var executor = BuildExecutor();
+        var results  = await executor.ExecuteAsync([]);
         results.Should().BeEmpty();
     }
 
     [Fact]
     public async Task ExecuteAsync_UnknownPlugin_ReturnsError()
     {
-        var kernel = Microsoft.SemanticKernel.Kernel.CreateBuilder().Build();
-        var executor = new ToolExecutorService(kernel, NullLogger<ToolExecutorService>.Instance);
+        var executor = BuildExecutor();
 
         var invocations = new List<PluginInvocation>
         {
@@ -330,6 +334,15 @@ public sealed class ToolExecutorTests
         results[0].Success.Should().BeFalse();
         results[0].Error.Should().Contain("not found");
     }
+}
+
+/// <summary>
+/// Minimal IKernelFactory stub for unit tests — returns a bare kernel with no plugins.
+/// </summary>
+internal sealed class StubKernelFactory(Microsoft.SemanticKernel.Kernel kernel)
+    : AI.ChatAgent.Services.IKernelFactory
+{
+    public Microsoft.SemanticKernel.Kernel CreateForRequest() => kernel;
 }
 
 // ── File Plugin Tests ─────────────────────────────────────────────────────────

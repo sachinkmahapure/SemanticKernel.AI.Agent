@@ -1,6 +1,20 @@
 version: "3.9"
 
 services:
+  # ── React UI ─────────────────────────────────────────────────────────────────
+  ui:
+    build:
+      context: ./chatagent-angular
+      dockerfile: Dockerfile
+    container_name: ai-chatagent-angular-ui
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - chatagent-net
+
   # ── Application ─────────────────────────────────────────────────────────────
   app:
     build:

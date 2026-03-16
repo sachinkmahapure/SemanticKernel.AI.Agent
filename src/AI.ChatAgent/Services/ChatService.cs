@@ -15,7 +15,7 @@ namespace AI.ChatAgent.Services;
 /// Supports both streaming and non-streaming response modes.
 /// </summary>
 public sealed class ChatService(
-    Kernel kernel,
+    IKernelFactory kernelFactory,
     RouterService router,
     ToolExecutorService toolExecutor,
     ConversationService conversation,
@@ -81,6 +81,7 @@ public sealed class ChatService(
 
         // 7. Get final LLM response
         // GetChatMessageContentAsync correct named parameter is 'cancellationToken'
+        var kernel      = kernelFactory.CreateForRequest();
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
         var llmResponse = await chatService.GetChatMessageContentAsync(
             history,
@@ -189,6 +190,7 @@ public sealed class ChatService(
         AppendToolContext(history, toolResults, decision.Reasoning);
 
         // 8. Stream LLM response
+        var kernel      = kernelFactory.CreateForRequest();
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
         var sb          = new StringBuilder();
 

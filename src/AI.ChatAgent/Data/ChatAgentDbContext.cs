@@ -88,29 +88,38 @@ public sealed class ChatAgentDbContext(DbContextOptions<ChatAgentDbContext> opti
 
     private static void SeedData(ModelBuilder modelBuilder)
     {
+        // NOTE: HasData() requires constant/deterministic values — never use
+        // DateTimeOffset.UtcNow here as it changes every build and causes
+        // "pending model changes" warnings on every dotnet ef migration add.
+        var seedDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
         modelBuilder.Entity<Product>().HasData(
-            new Product { Id = 1, Name = "Laptop Pro 15",       Description = "High-performance laptop",          Price = 1299.99m, Category = "Electronics", StockQuantity = 45,  IsActive = true },
-            new Product { Id = 2, Name = "Wireless Mouse",      Description = "Ergonomic wireless mouse",         Price = 49.99m,   Category = "Accessories", StockQuantity = 200, IsActive = true },
-            new Product { Id = 3, Name = "USB-C Hub",           Description = "7-in-1 USB-C hub",                Price = 79.99m,   Category = "Accessories", StockQuantity = 150, IsActive = true },
-            new Product { Id = 4, Name = "Mechanical Keyboard", Description = "RGB mechanical keyboard",         Price = 149.99m,  Category = "Accessories", StockQuantity = 80,  IsActive = true },
-            new Product { Id = 5, Name = "Monitor 27\" 4K",     Description = "4K IPS monitor",                  Price = 599.99m,  Category = "Electronics", StockQuantity = 30,  IsActive = true },
-            new Product { Id = 6, Name = "Webcam HD",           Description = "1080p USB webcam with mic",       Price = 89.99m,   Category = "Electronics", StockQuantity = 120, IsActive = true },
-            new Product { Id = 7, Name = "SSD 1TB",             Description = "NVMe M.2 SSD",                    Price = 109.99m,  Category = "Storage",     StockQuantity = 200, IsActive = true },
-            new Product { Id = 8, Name = "RAM 32GB Kit",        Description = "DDR5 6000MHz dual channel",       Price = 139.99m,  Category = "Memory",      StockQuantity = 90,  IsActive = true }
+            new Product { Id = 1, Name = "Laptop Pro 15",       Description = "High-performance laptop",      Price = 1299.99m, Category = "Electronics", StockQuantity = 45,  IsActive = true, CreatedAt = seedDate },
+            new Product { Id = 2, Name = "Wireless Mouse",      Description = "Ergonomic wireless mouse",     Price =   49.99m, Category = "Accessories", StockQuantity = 200, IsActive = true, CreatedAt = seedDate },
+            new Product { Id = 3, Name = "USB-C Hub",           Description = "7-in-1 USB-C hub",            Price =   79.99m, Category = "Accessories", StockQuantity = 150, IsActive = true, CreatedAt = seedDate },
+            new Product { Id = 4, Name = "Mechanical Keyboard", Description = "RGB mechanical keyboard",     Price =  149.99m, Category = "Accessories", StockQuantity =  80, IsActive = true, CreatedAt = seedDate },
+            new Product { Id = 5, Name = "Monitor 27\" 4K",     Description = "4K IPS monitor",              Price =  599.99m, Category = "Electronics", StockQuantity =  30, IsActive = true, CreatedAt = seedDate },
+            new Product { Id = 6, Name = "Webcam HD",           Description = "1080p USB webcam with mic",   Price =   89.99m, Category = "Electronics", StockQuantity = 120, IsActive = true, CreatedAt = seedDate },
+            new Product { Id = 7, Name = "SSD 1TB",             Description = "NVMe M.2 SSD",                Price =  109.99m, Category = "Storage",     StockQuantity = 200, IsActive = true, CreatedAt = seedDate },
+            new Product { Id = 8, Name = "RAM 32GB Kit",        Description = "DDR5 6000MHz dual channel",   Price =  139.99m, Category = "Memory",      StockQuantity =  90, IsActive = true, CreatedAt = seedDate }
         );
 
         modelBuilder.Entity<Customer>().HasData(
-            new Customer { Id = 1, FirstName = "Alice",   LastName = "Johnson",   Email = "alice@example.com",   Phone = "+1-555-0101" },
-            new Customer { Id = 2, FirstName = "Bob",     LastName = "Williams",  Email = "bob@example.com",     Phone = "+1-555-0102" },
-            new Customer { Id = 3, FirstName = "Carol",   LastName = "Davis",     Email = "carol@example.com",   Phone = "+1-555-0103" },
-            new Customer { Id = 4, FirstName = "David",   LastName = "Martinez",  Email = "david@example.com",   Phone = "+1-555-0104" }
+            new Customer { Id = 1, FirstName = "Alice", LastName = "Johnson",  Email = "alice@example.com", Phone = "+1-555-0101", CreatedAt = seedDate },
+            new Customer { Id = 2, FirstName = "Bob",   LastName = "Williams", Email = "bob@example.com",   Phone = "+1-555-0102", CreatedAt = seedDate },
+            new Customer { Id = 3, FirstName = "Carol", LastName = "Davis",    Email = "carol@example.com", Phone = "+1-555-0103", CreatedAt = seedDate },
+            new Customer { Id = 4, FirstName = "David", LastName = "Martinez", Email = "david@example.com", Phone = "+1-555-0104", CreatedAt = seedDate }
         );
 
+        var d30 = seedDate.AddDays(-30);
+        var d5  = seedDate.AddDays(-5);
+        var d1  = seedDate.AddDays(-1);
+
         modelBuilder.Entity<Order>().HasData(
-            new Order { Id = 1, CustomerId = 1, TotalAmount = 1349.98m, Status = OrderStatus.Delivered, OrderDate = DateTimeOffset.UtcNow.AddDays(-30) },
-            new Order { Id = 2, CustomerId = 2, TotalAmount = 229.98m,  Status = OrderStatus.Shipped,   OrderDate = DateTimeOffset.UtcNow.AddDays(-5)  },
-            new Order { Id = 3, CustomerId = 3, TotalAmount = 599.99m,  Status = OrderStatus.Confirmed, OrderDate = DateTimeOffset.UtcNow.AddDays(-1)  },
-            new Order { Id = 4, CustomerId = 1, TotalAmount = 109.99m,  Status = OrderStatus.Pending,   OrderDate = DateTimeOffset.UtcNow               }
+            new Order { Id = 1, CustomerId = 1, TotalAmount = 1349.98m, Status = OrderStatus.Delivered, OrderDate = d30 },
+            new Order { Id = 2, CustomerId = 2, TotalAmount =  229.98m, Status = OrderStatus.Shipped,   OrderDate = d5  },
+            new Order { Id = 3, CustomerId = 3, TotalAmount =  599.99m, Status = OrderStatus.Confirmed, OrderDate = d1  },
+            new Order { Id = 4, CustomerId = 1, TotalAmount =  109.99m, Status = OrderStatus.Pending,   OrderDate = seedDate }
         );
 
         modelBuilder.Entity<OrderItem>().HasData(

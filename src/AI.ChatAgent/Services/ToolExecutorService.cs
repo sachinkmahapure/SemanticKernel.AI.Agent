@@ -7,10 +7,13 @@ namespace AI.ChatAgent.Services;
 
 /// <summary>
 /// Executes plugin invocations decided by the router.
-/// Runs plugins with the same priority in parallel; higher priority runs first.
+/// Runs plugins with the same priority level in parallel (Task.WhenAll).
+/// Uses <see cref="KernelFactory"/> to obtain a per-request Kernel whose
+/// plugins are resolved from the current DI scope — avoiding the
+/// "Cannot resolve scoped service from root provider" error.
 /// </summary>
 public sealed class ToolExecutorService(
-    Kernel kernel,
+    IKernelFactory kernelFactory,
     ILogger<ToolExecutorService> logger)
 {
     /// <summary>
@@ -26,12 +29,17 @@ public sealed class ToolExecutorService(
 
         logger.LogInformation("ToolExecutor:Execute count={Count}", invocations.Count);
 
+        // Build ONE scoped kernel for this execution batch.
+        // All parallel tasks within the same request share this instance safely
+        // because Kernel.InvokeAsync is thread-safe for concurrent reads.
+        var kernel = kernelFactory.CreateForRequest();
+
         var allResults = new List<ToolExecutionResult>();
 
-        // Group by priority (ascending = runs first)
+        // Group by priority; higher number = higher priority = runs first
         var groups = invocations
             .GroupBy(i => i.Priority)
-            .OrderByDescending(g => g.Key); // higher number = higher priority = first
+            .OrderByDescending(g => g.Key);
 
         foreach (var group in groups)
         {
@@ -39,8 +47,7 @@ public sealed class ToolExecutorService(
             logger.LogDebug("ToolExecutor:Priority={Priority} parallel_count={Count}",
                 group.Key, group.Count());
 
-            // Execute all invocations in this priority group in parallel
-            var tasks = group.Select(inv => ExecuteSingleAsync(inv, ct)).ToList();
+            var tasks   = group.Select(inv => ExecuteSingleAsync(kernel, inv, ct)).ToList();
             var results = await Task.WhenAll(tasks);
             allResults.AddRange(results);
         }
@@ -51,6 +58,7 @@ public sealed class ToolExecutorService(
     // ─────────────────────────────────────────────────────────────────────────
 
     private async Task<ToolExecutionResult> ExecuteSingleAsync(
+        Kernel kernel,
         PluginInvocation inv,
         CancellationToken ct)
     {
@@ -60,18 +68,12 @@ public sealed class ToolExecutorService(
 
         try
         {
-            // Locate the plugin function in the kernel
             if (!kernel.Plugins.TryGetPlugin(inv.PluginName, out var plugin))
-            {
                 return Fail(inv, sw, $"Plugin '{inv.PluginName}' not found");
-            }
 
             if (!plugin.TryGetFunction(inv.FunctionName, out var function))
-            {
                 return Fail(inv, sw, $"Function '{inv.FunctionName}' not found in '{inv.PluginName}'");
-            }
 
-            // Build kernel arguments from the string dictionary
             var args = new KernelArguments();
             foreach (var (key, value) in inv.Arguments)
                 args[key] = value;
@@ -95,7 +97,8 @@ public sealed class ToolExecutorService(
         catch (OperationCanceledException)
         {
             sw.Stop();
-            logger.LogWarning("ToolExecutor:{Plugin}.{Function} was cancelled", inv.PluginName, inv.FunctionName);
+            logger.LogWarning("ToolExecutor:{Plugin}.{Function} cancelled",
+                inv.PluginName, inv.FunctionName);
             return Fail(inv, sw, "Operation was cancelled");
         }
         catch (Exception ex)

@@ -1,5 +1,3 @@
-using System.Net;
-using System.Text.Json;
 using AI.ChatAgent.Configuration;
 using AI.ChatAgent.Data;
 using AI.ChatAgent.Middleware;
@@ -17,6 +15,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.SemanticKernel;
 using Polly;
 using Serilog;
+using System.Net;
+using System.Text.Json;
 
 // ── Bootstrap Serilog ────────────────────────────────────────────────────────
 Log.Logger = new LoggerConfiguration()
@@ -127,11 +127,10 @@ try
         Log.Information("Using OpenAI: {ModelId}", aiOpts.OpenAI.ChatModelId);
     }
 
-    kernelBuilder.Plugins.AddFromType<DatabasePlugin>(AppConstants.Plugins.Database);
-    kernelBuilder.Plugins.AddFromType<ApiPlugin>(AppConstants.Plugins.Api);
-    kernelBuilder.Plugins.AddFromType<PdfPlugin>(AppConstants.Plugins.Pdf);
-    kernelBuilder.Plugins.AddFromType<FilePlugin>(AppConstants.Plugins.File);
-    kernelBuilder.Plugins.AddFromType<WebSearchPlugin>(AppConstants.Plugins.WebSearch);
+    // Plugins are NOT registered here via AddFromType<T>() — that would make them
+    // singletons inside SK's container, which conflicts with scoped DbContext.
+    // Instead, KernelFactory (registered as scoped below) attaches plugins per-request
+    // using instances resolved from the current DI scope.
 
     // ── Application Services ──────────────────────────────────────────────────
     builder.Services.AddScoped<DatabasePlugin>();
@@ -139,6 +138,8 @@ try
     builder.Services.AddScoped<PdfPlugin>();
     builder.Services.AddScoped<FilePlugin>();
     builder.Services.AddScoped<WebSearchPlugin>();
+    builder.Services.AddScoped<KernelFactory>();   // ← resolves scoped plugins per-request
+    builder.Services.AddScoped<IKernelFactory>(sp => sp.GetRequiredService<KernelFactory>());
     builder.Services.AddScoped<RouterService>();
     builder.Services.AddScoped<ToolExecutorService>();
     builder.Services.AddScoped<ConversationService>();

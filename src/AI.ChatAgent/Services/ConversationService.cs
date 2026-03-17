@@ -29,10 +29,11 @@ public sealed class ConversationService(
             var exists = await db.ChatSessions.AnyAsync(s => s.Id == sessionId, cancellationToken);
             if (exists)
             {
-                await db.ChatSessions
+				var now = DateTimeOffset.UtcNow;   // ✅ captured variable → SQL parameter @p0
+				await db.ChatSessions
                     .Where(s => s.Id == sessionId)
                     .ExecuteUpdateAsync(s =>
-                        s.SetProperty(x => x.LastActivityAt, DateTimeOffset.UtcNow), cancellationToken);
+                        s.SetProperty(x => x.LastActivityAt, now), cancellationToken);
                 return sessionId;
             }
         }

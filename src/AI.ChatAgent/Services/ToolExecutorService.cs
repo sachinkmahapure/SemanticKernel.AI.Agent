@@ -75,8 +75,24 @@ public sealed class ToolExecutorService(
                 return Fail(inv, sw, $"Function '{inv.FunctionName}' not found in '{inv.PluginName}'");
 
             var args = new KernelArguments();
+
+            // The router LLM may capitalise argument names differently from the C# parameter
+            // declarations (e.g. "City" vs "city", "Query" vs "query").
+            // SK's KernelArguments lookup is case-sensitive, so we must match exactly.
+            // Strategy: for each LLM-supplied key, find the declared parameter whose name
+            // matches case-insensitively, and use the declared name as the key.
+            var declaredParams = function.Metadata.Parameters
+                .Select(p => p.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
             foreach (var (key, value) in inv.Arguments)
-                args[key] = value;
+            {
+                // Find the exact declared parameter name (case-insensitive match)
+                var canonical = declaredParams.FirstOrDefault(
+                    p => string.Equals(p, key, StringComparison.OrdinalIgnoreCase));
+
+                args[canonical ?? key] = value;
+            }
 
             var result = await kernel.InvokeAsync(function, args, ct);
             var output = result.GetValue<string>() ?? result.ToString();

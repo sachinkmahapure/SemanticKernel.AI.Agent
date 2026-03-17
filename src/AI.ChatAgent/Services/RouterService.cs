@@ -54,6 +54,7 @@ public sealed class RouterService(
         - Higher priority number = runs first
         - requiresHumanApproval=true only for destructive/sensitive actions (DeleteData, SendEmail)
         - All argument values must be strings
+        - Argument keys MUST be camelCase matching the exact parameter names (e.g. "city" not "City", "query" not "Query", "maxResults" not "MaxResults")
         - Only use functions that actually exist in the plugin definitions above
         """;
 

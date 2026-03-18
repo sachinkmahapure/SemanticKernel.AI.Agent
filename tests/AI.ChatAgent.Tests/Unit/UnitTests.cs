@@ -4,6 +4,7 @@ using AI.ChatAgent.Data;
 using AI.ChatAgent.Models;
 using AI.ChatAgent.Plugins;
 using AI.ChatAgent.Services;
+using AI.ChatAgent.Validation;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;

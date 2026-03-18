@@ -1,0 +1,51 @@
+AI ChatAgent — Technical Documentation
+
+## Overview
+The AI ChatAgent is a production-ready conversational AI agent built on Microsoft Semantic Kernel and .NET 10.
+It connects to multiple data sources: a SQL database (products, customers, orders), external REST APIs,
+PDF documents, CSV/JSON files, and the web via Serper or Bing Search.
+
+## Architecture
+Requests flow through: User → Middleware → Router → Parallel Plugins → LLM Synthesis → Response.
+The RouterService uses an LLM to decide which plugins to invoke based on the user's message.
+Plugins execute in parallel when they share the same priority level.
+
+## Plugins
+- DatabasePlugin: Queries products, customers, and orders using Entity Framework Core.
+  Functions: SearchProducts, GetProductById, SearchCustomers, GetOrders, GetBusinessStats, QueryByIntent.
+- ApiPlugin: Calls external REST APIs including weather via OpenWeatherMap.
+  Functions: CallRegisteredApi, HttpGet, HttpPost, GetWeather.
+- PdfPlugin: Extracts and searches text in PDF documents using PdfPig.
+  Functions: ListPdfFiles, ExtractPdfText, SearchAcrossPdfs, GetPdfMetadata.
+- FilePlugin: Reads and analyses CSV, JSON, and text files using CsvHelper.
+  Functions: ListFiles, ReadCsvFile, ReadJsonFile, ReadTextFile, AnalyzeCsvFile.
+- WebSearchPlugin: Searches the web using Serper (Google) or Bing Search API.
+  Functions: Search, SearchNews, FetchUrl.
+
+## RAG (Retrieval-Augmented Generation)
+The agent uses semantic search to retrieve relevant document chunks before generating a response.
+Documents are split into overlapping chunks of ~1800 characters, embedded using text-embedding-3-small,
+and stored in a VolatileMemoryStore (in-memory vector database).
+On each request, the top 5 most relevant chunks are retrieved and injected as context into the prompt.
+
+## Configuration
+All secrets are stored in environment variables or .NET User Secrets:
+- AI__OpenAI__ApiKey: Your OpenAI API key (sk-...)
+- AI__OpenAI__ChatModelId: gpt-4o or gpt-4o-mini
+- AI__OpenAI__EmbeddingModelId: text-embedding-3-small
+- WebSearch__Serper__ApiKey: Your Serper API key
+
+## Endpoints
+- POST /chat/stream — Streaming chat via Server-Sent Events
+- POST /chat — Non-streaming chat
+- GET /chat/{sessionId}/history — Conversation history
+- GET /rag/search?query= — Test semantic search
+- POST /rag/reindex — Re-index all documents
+- GET /health — Health check
+- GET /swagger — API documentation
+
+## Database
+Uses SQLite in development and SQL Server in production.
+Tables: Products (8 seeded), Customers (4 seeded), Orders (4 seeded), OrderItems (6 seeded),
+ChatSessions (empty), ChatMessages (empty).
+Migration runs automatically on startup via db.Database.MigrateAsync().

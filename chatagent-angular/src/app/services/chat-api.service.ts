@@ -4,11 +4,12 @@ import { Observable, from } from 'rxjs';
 import {
   ChatRequest, ChatResponse, HistoryResponse, StreamChunk
 } from '../models/chat.models';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ChatApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '';
+  private readonly baseUrl = environment.apiBaseUrl;
 
   // ── Non-streaming ──────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-// ── API contracts (mirror .NET Models) ───────────────────────────────────────
+// ── API contracts ─────────────────────────────────────────────────────────────
 
 export interface ChatRequest {
   message: string;
@@ -49,6 +49,39 @@ export interface ApiMessage {
   tokenCount?: number;
 }
 
+// ── RAG models ────────────────────────────────────────────────────────────────
+
+export interface RagSearchResult {
+  text: string;
+  source: string;
+  score: number;
+  collection: string;
+}
+
+export interface RagSearchResponse {
+  query: string;
+  count: number;
+  results: RagSearchResult[];
+}
+
+export interface ReindexResponse {
+  message: string;
+}
+
+// ── Approval models ───────────────────────────────────────────────────────────
+
+export interface ApprovalRequest {
+  id: string;
+  actionName: string;
+  description: string;
+  parameters: Record<string, string>;
+  requestedAt: string;
+  expiresAt: string;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Expired';
+  reviewedBy?: string;
+  reviewNotes?: string;
+}
+
 // ── UI models ─────────────────────────────────────────────────────────────────
 
 export interface ChatMessage {
@@ -71,6 +104,4 @@ export interface ChatSession {
   messageCount: number;
 }
 
-export interface AppTheme {
-  mode: 'dark' | 'light';
-}
+export type ActivePanel = 'chat' | 'rag' | 'approvals';

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { ChatApiService } from './chat-api.service';
-import { ChatMessage, ChatSession, StreamChunk } from '../models/chat.models';
+import { ChatMessage, ChatSession, StreamChunk, ActivePanel } from '../models/chat.models';
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -21,6 +21,9 @@ export class ChatStateService {
   readonly error      = signal<string | null>(null);
   readonly theme      = signal<'dark' | 'light'>('dark');
   readonly sidebarOpen = signal<boolean>(true);
+  readonly activePanel  = signal<ActivePanel>('chat');
+
+  setPanel(panel: ActivePanel): void { this.activePanel.set(panel); }
 
   private readonly messageMap = signal<Map<string, ChatMessage[]>>(new Map());
 

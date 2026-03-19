@@ -9,6 +9,10 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ChatApiService {
   private readonly http = inject(HttpClient);
+  // Reads from environment.apiBaseUrl:
+  //   ''                        → relative URLs → Angular proxy forwards to API  (dev default)
+  //   'https://localhost:54576' → direct calls to .NET dev server (set in environment.ts)
+  //   'https://your-app.railway.app' → production API (set in environment.prod.ts)
   private readonly baseUrl = environment.apiBaseUrl;
 
   // ── Non-streaming ──────────────────────────────────────────────────────────

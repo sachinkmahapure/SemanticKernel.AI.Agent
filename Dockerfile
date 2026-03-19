@@ -29,8 +29,8 @@ RUN dotnet test tests/AI.ChatAgent.Tests/AI.ChatAgent.Tests.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-RUN addgroup --gid 1000 appgroup && \
-    adduser --uid 1000 --gid 1000 --no-create-home --disabled-password appuser
+RUN groupadd --gid 1000 appgroup && \
+    useradd --uid 1000 --gid 1000 --no-create-home --shell /bin/false appuser
 
 RUN mkdir -p /app/logs /app/SampleData/PDFs /app/SampleData/Files && \
     chown -R appuser:appgroup /app

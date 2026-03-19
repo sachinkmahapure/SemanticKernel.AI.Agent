@@ -2,9 +2,9 @@ name: CI — Build, Test & Scan
 
 on:
   push:
-    branches: [develop]
+    branches: [develop,features/*]
   pull_request:
-    branches: [main, develop]
+    branches: [develop]
   workflow_dispatch:
 
 env:

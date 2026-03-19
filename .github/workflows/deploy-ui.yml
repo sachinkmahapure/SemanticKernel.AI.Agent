@@ -1,9 +1,9 @@
 name: Deploy Angular UI → GitHub Pages
 
-# Triggers: push to main, or manually
+# Triggers: push to develop, or manually
 on:
   push:
-    branches: [main]
+    branches: [develop]
     paths:
       - 'chatagent-angular/**'
       - '.github/workflows/deploy-ui.yml'

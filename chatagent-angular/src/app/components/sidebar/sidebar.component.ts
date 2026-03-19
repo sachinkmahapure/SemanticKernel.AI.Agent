@@ -4,7 +4,7 @@ import {
 import { NgClass } from '@angular/common';
 import { formatDistanceToNow } from 'date-fns';
 import { ChatStateService } from '../../services/chat-state.service';
-import { ChatSession } from '../../models/chat.models';
+import { ActivePanel } from '../../models/chat.models';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,7 +12,8 @@ import { ChatSession } from '../../models/chat.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass],
   template: `
-    <aside class="sidebar" [ngClass]="{ 'sidebar--open': state.sidebarOpen(), 'sidebar--closed': !state.sidebarOpen() }">
+    <aside class="sidebar"
+      [ngClass]="{ 'sidebar--open': state.sidebarOpen(), 'sidebar--closed': !state.sidebarOpen() }">
 
       <!-- Header -->
       <div class="sidebar__header">
@@ -28,7 +29,7 @@ import { ChatSession } from '../../models/chat.models';
             <span class="brand__name">AI ChatAgent</span>
           }
         </div>
-        <button class="icon-btn" (click)="state.toggleSidebar()" [title]="state.sidebarOpen() ? 'Collapse' : 'Expand'">
+        <button class="icon-btn" (click)="state.toggleSidebar()">
           @if (state.sidebarOpen()) {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           } @else {
@@ -37,43 +38,66 @@ import { ChatSession } from '../../models/chat.models';
         </button>
       </div>
 
-      <!-- New chat -->
-      <button class="new-chat-btn" (click)="state.newChat()" title="New chat">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        @if (state.sidebarOpen()) { <span>New chat</span> }
-      </button>
+      <!-- Panel nav -->
+      <div class="panel-nav" [ngClass]="{ 'panel-nav--collapsed': !state.sidebarOpen() }">
+        <button class="nav-btn" [ngClass]="{ active: state.activePanel() === 'chat' }"
+          (click)="setPanel('chat')" title="Chat">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          @if (state.sidebarOpen()) { <span>Chat</span> }
+        </button>
 
-      <!-- Sessions -->
-      @if (state.sidebarOpen() && state.sessions().length > 0) {
-        <div class="sessions">
-          <div class="sessions__label">Recent</div>
-          <div class="sessions__list">
-            @for (session of state.sessions(); track session.id) {
-              <div
-                class="session-item"
-                [ngClass]="{ 'session-item--active': session.id === state.currentId() }"
-                (click)="state.loadSession(session.id)"
-              >
-                <div class="session-item__content">
-                  <div class="session-item__title">{{ session.title }}</div>
-                  <div class="session-item__meta">{{ timeAgo(session.lastActivityAt) }}</div>
+        <button class="nav-btn" [ngClass]="{ active: state.activePanel() === 'rag' }"
+          (click)="setPanel('rag')" title="Document Search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          @if (state.sidebarOpen()) { <span>Doc Search</span> }
+        </button>
+
+        <button class="nav-btn" [ngClass]="{ active: state.activePanel() === 'approvals' }"
+          (click)="setPanel('approvals')" title="Approvals">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          @if (state.sidebarOpen()) { <span>Approvals</span> }
+        </button>
+      </div>
+
+      <!-- Sessions (only in chat panel) -->
+      @if (state.sidebarOpen() && state.activePanel() === 'chat') {
+        <button class="new-chat-btn" (click)="state.newChat()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>New chat</span>
+        </button>
+
+        @if (state.sessions().length > 0) {
+          <div class="sessions">
+            <div class="sessions__label">Recent</div>
+            <div class="sessions__list">
+              @for (session of state.sessions(); track session.id) {
+                <div class="session-item"
+                  [ngClass]="{ 'session-item--active': session.id === state.currentId() }"
+                  (click)="state.loadSession(session.id)">
+                  <div class="session-item__content">
+                    <div class="session-item__title">{{ session.title }}</div>
+                    <div class="session-item__meta">{{ timeAgo(session.lastActivityAt) }}</div>
+                  </div>
+                  <button class="session-item__delete"
+                    (click)="onDelete($event, session.id)" title="Delete">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    </svg>
+                  </button>
                 </div>
-                <button
-                  class="session-item__delete"
-                  (click)="onDelete($event, session.id)"
-                  title="Delete"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-                  </svg>
-                </button>
-              </div>
-            }
+              }
+            </div>
           </div>
-        </div>
+        }
       }
 
       <!-- Footer -->
@@ -82,10 +106,10 @@ import { ChatSession } from '../../models/chat.models';
           <button class="icon-btn sidebar__footer-btn" (click)="state.toggleTheme()">
             @if (state.theme() === 'dark') {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
                 <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
                 <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
               </svg>
               <span>Light mode</span>
             } @else {
@@ -105,6 +129,13 @@ export class SidebarComponent {
 
   timeAgo(date: Date): string {
     return formatDistanceToNow(date, { addSuffix: true });
+  }
+
+  setPanel(panel: ActivePanel): void {
+    this.state.setPanel(panel);
+    if (!this.state.sidebarOpen() && panel === 'chat') {
+      this.state.toggleSidebar();
+    }
   }
 
   onDelete(e: Event, id: string): void {

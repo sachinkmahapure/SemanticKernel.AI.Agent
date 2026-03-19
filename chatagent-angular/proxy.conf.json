@@ -1,17 +1,23 @@
 {
   "/chat": {
-    "target": "http://localhost:8080",
+    "target": "https://localhost:54576",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "info"
   },
-  "/health": {
-    "target": "http://localhost:8080",
+  "/rag": {
+    "target": "https://localhost:54576",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/approvals": {
+    "target": "https://localhost:54576",
     "secure": false,
     "changeOrigin": true
   },
-  "/approvals": {
-    "target": "http://localhost:8080",
+  "/health": {
+    "target": "https://localhost:54576",
     "secure": false,
     "changeOrigin": true
   }

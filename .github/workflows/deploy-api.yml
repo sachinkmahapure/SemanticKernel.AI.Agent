@@ -2,7 +2,7 @@ name: Deploy .NET API → Railway
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
     paths:
       - 'src/**'
       - 'Dockerfile'

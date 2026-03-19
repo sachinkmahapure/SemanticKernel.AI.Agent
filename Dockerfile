@@ -29,16 +29,13 @@ RUN dotnet test tests/AI.ChatAgent.Tests/AI.ChatAgent.Tests.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-RUN groupadd --gid 1000 appgroup && \
-    useradd --uid 1000 --gid 1000 --no-create-home --shell /bin/false appuser
-
 RUN mkdir -p /app/logs /app/SampleData/PDFs /app/SampleData/Files && \
-    chown -R appuser:appgroup /app
+    chown -R app:app /app
 
 COPY --from=build /app/publish .
-COPY --chown=appuser:appgroup src/AI.ChatAgent/SampleData ./SampleData
+COPY --chown=app:app src/AI.ChatAgent/SampleData ./SampleData
 
-USER appuser
+USER app
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1

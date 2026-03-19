@@ -51,10 +51,10 @@ try
 	var sqlServerConn = builder.Configuration.GetConnectionString("SqlServer");
 
 	builder.Services.AddDbContext<ChatAgentDbContext>(opt =>
-	{
-		if (builder.Environment.IsProduction() && !string.IsNullOrWhiteSpace(sqlServerConn))
-			opt.UseSqlServer(sqlServerConn);
-		else
+	{		  // TODO: make sure it SQL Server used in production 
+		//if (builder.Environment.IsProduction() && !string.IsNullOrWhiteSpace(sqlServerConn))
+		//	opt.UseSqlServer(sqlServerConn);
+		//else
 			opt.UseSqlite(sqliteConn);
 	});
 

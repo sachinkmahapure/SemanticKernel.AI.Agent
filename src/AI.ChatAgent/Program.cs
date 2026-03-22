@@ -46,24 +46,13 @@ try
 	var aiOpts = builder.Configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
 	var extApiOpts = builder.Configuration.GetSection(ExternalApiOptions.SectionName).Get<ExternalApiOptions>() ?? new ExternalApiOptions();
 
-	// ── Database ──────────────────────────────────────────────────────────────
+	// ── Database — SQLite (lightweight, zero-config, works everywhere) ────────
 	var sqliteConn = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=chatagent.db";
-	var sqlServerConn = builder.Configuration.GetConnectionString("SqlServer");
 
-	builder.Services.AddDbContext<ChatAgentDbContext>(opt =>
-	{		  // TODO: make sure it SQL Server used in production 
-		//if (builder.Environment.IsProduction() && !string.IsNullOrWhiteSpace(sqlServerConn))
-		//	opt.UseSqlServer(sqlServerConn);
-		//else
-			opt.UseSqlite(sqliteConn);
-	});
+	builder.Services.AddDbContext<ChatAgentDbContext>(opt => opt.UseSqlite(sqliteConn));
 
 	// ── Redis / Distributed Cache ──────────────────────────────────────────────
-	var redisConn = builder.Configuration.GetConnectionString("Redis");
-	if (!string.IsNullOrWhiteSpace(redisConn))
-		builder.Services.AddStackExchangeRedisCache(opt => opt.Configuration = redisConn);
-	else
-		builder.Services.AddDistributedMemoryCache();
+	builder.Services.AddDistributedMemoryCache();
 
 	// ── HTTP Client with Polly v8 resilience ──────────────────────────────────
 	builder.Services.AddHttpClient("ResilienceClient", client =>
@@ -387,7 +376,7 @@ try
 	{
 		ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 	})
-    .WithName("Health")
+	.WithName("Health")
 	.WithOpenApi();
 
 	await app.RunAsync();

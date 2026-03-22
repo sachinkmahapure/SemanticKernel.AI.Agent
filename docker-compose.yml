@@ -1,21 +1,10 @@
-version: "3.9"
+# Lightweight local stack — SQLite + in-memory cache
+# RAM: ~400 MB total (no SQL Server, Redis, or Seq)
+# Run: docker-compose up -d
 
 services:
-  # ── React UI ─────────────────────────────────────────────────────────────────
-  ui:
-    build:
-      context: ./chatagent-angular
-      dockerfile: Dockerfile
-    container_name: ai-chatagent-angular-ui
-    ports:
-      - "3000:80"
-    depends_on:
-      - app
-    restart: unless-stopped
-    networks:
-      - chatagent-net
 
-  # ── Application ─────────────────────────────────────────────────────────────
+  # ── .NET API ──────────────────────────────────────────────────────────────
   app:
     build:
       context: .
@@ -25,100 +14,45 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+      # SQLite — persisted via a named volume (no SQL Server needed)
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/chatagent.db
-      - ConnectionStrings__SqlServer=Server=sqlserver,1433;Database=ChatAgent;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true
-      - ConnectionStrings__Redis=redis:6379
+      # No Redis connection string → app automatically uses AddDistributedMemoryCache()
+      # Set your OpenAI key here or via: export OPENAI_API_KEY=sk-...
       - AI__Provider=OpenAI
-      - AI__OpenAI__ApiKey=${OPENAI_API_KEY:-sk-your-key-here}
-      - AI__OpenAI__ChatModelId=gpt-4o
+      - AI__OpenAI__ApiKey=${OPENAI_API_KEY:-sk-replace-me}
+      - AI__OpenAI__ChatModelId=gpt-4o-mini
+      - AI__OpenAI__EmbeddingModelId=text-embedding-3-small
       - WebSearch__Provider=Serper
-      - WebSearch__Serper__ApiKey=${SERPER_API_KEY:-your-serper-key}
-      - Serilog__WriteTo__1__Args__serverUrl=http://seq:5341
+      - WebSearch__Serper__ApiKey=${SERPER_API_KEY:-}
     volumes:
-      - app-data:/app/data
-      - app-logs:/app/logs
-      - ./src/AI.ChatAgent/SampleData:/app/SampleData:ro
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - sqlite-data:/app/data          # SQLite database file
+      - app-logs:/app/logs             # log files
+      - ./src/AI.ChatAgent/SampleData:/app/SampleData:ro   # RAG documents
     restart: unless-stopped
-    networks:
-      - chatagent-net
+    mem_limit: 512m
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 20s
 
-  # ── SQL Server ───────────────────────────────────────────────────────────────
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: ai-chatagent-sqlserver
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
-      - MSSQL_PID=Developer
+  # ── Angular UI ────────────────────────────────────────────────────────────
+  ui:
+    build:
+      context: ./chatagent-angular
+      dockerfile: Dockerfile
+    container_name: ai-chatagent-ui
     ports:
-      - "1433:1433"
-    volumes:
-      - sqlserver-data:/var/opt/mssql
+      - "3000:80"
+    depends_on:
+      app:
+        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - chatagent-net
-    healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong@Passw0rd" -Q "SELECT 1" -C
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
+    mem_limit: 128m
 
-  # ── Redis ────────────────────────────────────────────────────────────────────
-  redis:
-    image: redis:7.4-alpine
-    container_name: ai-chatagent-redis
-    command: redis-server --save 20 1 --loglevel warning
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    restart: unless-stopped
-    networks:
-      - chatagent-net
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ── Seq (structured logging) ─────────────────────────────────────────────────
-  seq:
-    image: datalust/seq:latest
-    container_name: ai-chatagent-seq
-    environment:
-      - ACCEPT_EULA=Y
-    ports:
-      - "5341:5341"
-      - "8081:80"
-    volumes:
-      - seq-data:/data
-    restart: unless-stopped
-    networks:
-      - chatagent-net
-
-# ── Volumes ───────────────────────────────────────────────────────────────────
 volumes:
-  app-data:
+  sqlite-data:
   app-logs:
-  sqlserver-data:
-  redis-data:
-  seq-data:
-
-# ── Networks ──────────────────────────────────────────────────────────────────
-networks:
-  chatagent-net:
-    driver: bridge
